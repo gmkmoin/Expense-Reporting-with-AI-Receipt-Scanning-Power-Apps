@@ -1,0 +1,101 @@
+<ImportExportXml version="9.2.26071.168" SolutionPackageVersion="9.2" languagecode="1033" generatedBy="CrmLive" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" OrganizationVersion="9.2.26071.168" OrganizationSchemaType="Standard" CRMServerServiceabilityVersion="9.2.26071.00168">
+  <SolutionManifest>
+    <UniqueName>ExpenseReporting</UniqueName>
+    <LocalizedNames>
+      <LocalizedName description="Expense Reporting" languagecode="1033" />
+    </LocalizedNames>
+    <Descriptions />
+    <Version>1.0.0.10</Version>
+    <Managed>0</Managed>
+    <Publisher>
+      <UniqueName>RezaDorrani</UniqueName>
+      <LocalizedNames>
+        <LocalizedName description="RezaDorrani" languagecode="1033" />
+      </LocalizedNames>
+      <Descriptions />
+      <EMailAddress>reza400@msn.com</EMailAddress>
+      <SupportingWebsiteUrl xsi:nil="true"></SupportingWebsiteUrl>
+      <CustomizationPrefix>new</CustomizationPrefix>
+      <CustomizationOptionValuePrefix>10000</CustomizationOptionValuePrefix>
+      <Addresses>
+        <Address>
+          <AddressNumber>1</AddressNumber>
+          <AddressTypeCode>1</AddressTypeCode>
+          <City xsi:nil="true"></City>
+          <County xsi:nil="true"></County>
+          <Country xsi:nil="true"></Country>
+          <Fax xsi:nil="true"></Fax>
+          <FreightTermsCode xsi:nil="true"></FreightTermsCode>
+          <ImportSequenceNumber xsi:nil="true"></ImportSequenceNumber>
+          <Latitude xsi:nil="true"></Latitude>
+          <Line1>190 MONARCH TRL</Line1>
+          <Line2 xsi:nil="true"></Line2>
+          <Line3 xsi:nil="true"></Line3>
+          <Longitude xsi:nil="true"></Longitude>
+          <Name xsi:nil="true"></Name>
+          <PostalCode>77498</PostalCode>
+          <PostOfficeBox xsi:nil="true"></PostOfficeBox>
+          <PrimaryContactName xsi:nil="true"></PrimaryContactName>
+          <ShippingMethodCode>1</ShippingMethodCode>
+          <StateOrProvince xsi:nil="true"></StateOrProvince>
+          <Telephone1>8322908793</Telephone1>
+          <Telephone2 xsi:nil="true"></Telephone2>
+          <Telephone3 xsi:nil="true"></Telephone3>
+          <TimeZoneRuleVersionNumber xsi:nil="true"></TimeZoneRuleVersionNumber>
+          <UPSZone xsi:nil="true"></UPSZone>
+          <UTCOffset xsi:nil="true"></UTCOffset>
+          <UTCConversionTimeZoneCode xsi:nil="true"></UTCConversionTimeZoneCode>
+        </Address>
+        <Address>
+          <AddressNumber>2</AddressNumber>
+          <AddressTypeCode>1</AddressTypeCode>
+          <City xsi:nil="true"></City>
+          <County xsi:nil="true"></County>
+          <Country xsi:nil="true"></Country>
+          <Fax xsi:nil="true"></Fax>
+          <FreightTermsCode xsi:nil="true"></FreightTermsCode>
+          <ImportSequenceNumber xsi:nil="true"></ImportSequenceNumber>
+          <Latitude xsi:nil="true"></Latitude>
+          <Line1 xsi:nil="true"></Line1>
+          <Line2 xsi:nil="true"></Line2>
+          <Line3 xsi:nil="true"></Line3>
+          <Longitude xsi:nil="true"></Longitude>
+          <Name xsi:nil="true"></Name>
+          <PostalCode xsi:nil="true"></PostalCode>
+          <PostOfficeBox xsi:nil="true"></PostOfficeBox>
+          <PrimaryContactName xsi:nil="true"></PrimaryContactName>
+          <ShippingMethodCode>1</ShippingMethodCode>
+          <StateOrProvince xsi:nil="true"></StateOrProvince>
+          <Telephone1 xsi:nil="true"></Telephone1>
+          <Telephone2 xsi:nil="true"></Telephone2>
+          <Telephone3 xsi:nil="true"></Telephone3>
+          <TimeZoneRuleVersionNumber xsi:nil="true"></TimeZoneRuleVersionNumber>
+          <UPSZone xsi:nil="true"></UPSZone>
+          <UTCOffset xsi:nil="true"></UTCOffset>
+          <UTCConversionTimeZoneCode xsi:nil="true"></UTCConversionTimeZoneCode>
+        </Address>
+      </Addresses>
+    </Publisher>
+    <RootComponents>
+      <RootComponent type="1" schemaName="new_costcenter" behavior="0" />
+      <RootComponent type="1" schemaName="new_expenses" behavior="0" />
+      <RootComponent type="1" schemaName="new_lineitems" behavior="0" />
+      <RootComponent type="9" schemaName="new_category" behavior="0" />
+      <RootComponent type="9" schemaName="new_expensestatus" behavior="0" />
+      <RootComponent type="20" id="{a9315699-49d4-ea11-a813-000d3a579c9d}" behavior="0" />
+      <RootComponent type="20" id="{b273b50d-4ad4-ea11-a813-000d3a579c9d}" behavior="0" />
+      <RootComponent type="29" id="{af2743e4-01d5-ea11-a813-000d3a579c9d}" behavior="0" />
+      <RootComponent type="300" schemaName="new_expensesapp_8c6a6" behavior="0" />
+      <RootComponent type="431" schemaName="new_lineitems new_receipt" behavior="0" />
+      <RootComponent type="432" schemaName="new_lineitems" behavior="0" />
+    </RootComponents>
+    <MissingDependencies>
+      <MissingDependency>
+        <Required type="1" schemaName="msdyn_aimodel" displayName="AI Model" solution="msdyn_AISolution (202604.3.14.1)">
+          <package appName="PowerAI" version="202604.3.14.1">msdyn_AISolutionAnchor (202604.3.14.1)</package>
+        </Required>
+        <Dependent type="300" schemaName="new_expensesapp_8c6a6" displayName="Expenses App" />
+      </MissingDependency>
+    </MissingDependencies>
+  </SolutionManifest>
+</ImportExportXml>

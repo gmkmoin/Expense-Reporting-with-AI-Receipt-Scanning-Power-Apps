@@ -1,0 +1,278 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_approvals": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "new_sharedapprovals_1e354"
+        },
+        "api": {
+          "name": "shared_approvals"
+        }
+      },
+      "shared_commondataserviceforapps": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "new_sharedcommondataserviceforapps_ef38e"
+        },
+        "api": {
+          "name": "shared_commondataserviceforapps"
+        }
+      },
+      "shared_office365": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "new_sharedoffice365_9b688"
+        },
+        "api": {
+          "name": "shared_office365"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        }
+      },
+      "triggers": {
+        "When_a_record_is_created,_updated_or_deleted": {
+          "metadata": {
+            "operationMetadataId": "8ad87056-d4d6-4a04-ab3a-a70247515227"
+          },
+          "type": "OpenApiConnectionWebhook",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_commondataserviceforapps",
+              "operationId": "SubscribeWebhookTrigger",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+            },
+            "parameters": {
+              "subscriptionRequest/message": 3,
+              "subscriptionRequest/entityname": "new_expenses",
+              "subscriptionRequest/scope": 4,
+              "subscriptionRequest/filterexpression": "new_expensestatus eq 100000001"
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        }
+      },
+      "actions": {
+        "Start_and_wait_for_an_approval": {
+          "runAfter": {
+            "App_Link": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "d5145fa8-236f-4edb-a47d-a3893a6433ec"
+          },
+          "type": "OpenApiConnectionWebhook",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_approvals",
+              "operationId": "StartAndWaitForAnApproval",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_approvals"
+            },
+            "parameters": {
+              "approvalType": "Basic",
+              "WebhookApprovalCreationInput/title": "New Expense Submitted for Approval: @{triggerOutputs()?['body/new_name']}",
+              "WebhookApprovalCreationInput/assignedTo": "@triggerOutputs()?['body/new_approvername']",
+              "WebhookApprovalCreationInput/details": "Expense: @{triggerOutputs()?['body/new_name']}\nStart Date: @{formatDateTime(triggerOutputs()?['body/new_startdate'],'MMM dd yyyy')}\nEnd Date: @{formatDateTime(triggerOutputs()?['body/new_enddate'],'MMM dd yyyy')}",
+              "WebhookApprovalCreationInput/itemLink": "@{variables('varAppLink')}&ExpenseID=@{triggerOutputs()?['body/new_expensesid']}",
+              "WebhookApprovalCreationInput/itemLinkDescription": "@triggerOutputs()?['body/new_name']",
+              "WebhookApprovalCreationInput/requestor": "@outputs('Get_Requestor')?['body/internalemailaddress']",
+              "WebhookApprovalCreationInput/enableNotifications": true,
+              "WebhookApprovalCreationInput/enableReassignment": false
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "Condition": {
+          "actions": {
+            "Apply_to_each": {
+              "foreach": "@outputs('Start_and_wait_for_an_approval')?['body/responses']",
+              "actions": {
+                "Update_record_for_Approved_Status": {
+                  "runAfter": {},
+                  "metadata": {
+                    "operationMetadataId": "13e6e38a-0e81-4c5e-bdda-c2d8bd9bca51"
+                  },
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "host": {
+                      "connectionName": "shared_commondataserviceforapps",
+                      "operationId": "UpdateRecord",
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+                    },
+                    "parameters": {
+                      "entityName": "new_expenseses",
+                      "recordId": "@triggerOutputs()?['body/new_expensesid']",
+                      "item/new_comments": "Requestor: @{triggerOutputs()?['body/new_comments']}\nApprover: @{items('Apply_to_each')?['comments']}",
+                      "item/new_expensestatus": 100000002
+                    },
+                    "authentication": "@parameters('$authentication')"
+                  }
+                },
+                "Send_requestor_approved_email": {
+                  "runAfter": {
+                    "Update_record_for_Approved_Status": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "eaeca5bc-8331-49f3-9b85-ca3a5ae780ae"
+                  },
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "host": {
+                      "connectionName": "shared_office365",
+                      "operationId": "SendEmailV2",
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365"
+                    },
+                    "parameters": {
+                      "emailMessage/To": "@outputs('Get_Requestor')?['body/internalemailaddress']",
+                      "emailMessage/Subject": "Your expense request for \"@{triggerOutputs()?['body/new_name']}\" has been Approved",
+                      "emailMessage/Body": "<p>Hi @{outputs('Get_Requestor')?['body/fullname']},<br>\n<br>\nYour expense request for \"@{triggerOutputs()?['body/new_name']}\" has been <strong>Approved<br>\n</strong>Approver: @{items('Apply_to_each')?['responder/displayName']}<br>\nComments: @{items('Apply_to_each')?['comments']}<br>\n<br>\nThanks,<br>\nAdmin</p>",
+                      "emailMessage/Importance": "Normal"
+                    },
+                    "authentication": "@parameters('$authentication')"
+                  }
+                }
+              },
+              "runAfter": {},
+              "metadata": {
+                "operationMetadataId": "20b96f25-91e3-46d1-93ef-c45896555294"
+              },
+              "type": "Foreach"
+            }
+          },
+          "runAfter": {
+            "Start_and_wait_for_an_approval": [
+              "Succeeded"
+            ]
+          },
+          "else": {
+            "actions": {
+              "For_each": {
+                "foreach": "@outputs('Start_and_wait_for_an_approval')?['body/responses']",
+                "actions": {
+                  "Update_record_for_Rejected_Status": {
+                    "runAfter": {},
+                    "metadata": {
+                      "operationMetadataId": "e4767e50-85e3-403a-acbc-23ebc2fb00f7"
+                    },
+                    "type": "OpenApiConnection",
+                    "inputs": {
+                      "host": {
+                        "connectionName": "shared_commondataserviceforapps",
+                        "operationId": "UpdateRecord",
+                        "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+                      },
+                      "parameters": {
+                        "entityName": "new_expenseses",
+                        "recordId": "@triggerOutputs()?['body/new_expensesid']",
+                        "item/new_comments": "Requestor: @{triggerOutputs()?['body/new_comments']}\nApprover: @{items('For_each')?['comments']}",
+                        "item/new_expensestatus": 100000003
+                      },
+                      "authentication": "@parameters('$authentication')"
+                    }
+                  },
+                  "Send_requestor_rejected_email": {
+                    "runAfter": {
+                      "Update_record_for_Rejected_Status": [
+                        "Succeeded"
+                      ]
+                    },
+                    "metadata": {
+                      "operationMetadataId": "cc7d2637-8cd7-4bec-b155-dba74c4ce584"
+                    },
+                    "type": "OpenApiConnection",
+                    "inputs": {
+                      "host": {
+                        "connectionName": "shared_office365",
+                        "operationId": "SendEmailV2",
+                        "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365"
+                      },
+                      "parameters": {
+                        "emailMessage/To": "@outputs('Get_Requestor')?['body/internalemailaddress']",
+                        "emailMessage/Subject": "Your expense request for \"@{triggerOutputs()?['body/new_name']}\" has been Rejected",
+                        "emailMessage/Body": "<p>Hi @{outputs('Get_Requestor')?['body/fullname']},<br>\n<br>\nYour expense request for \"@{triggerOutputs()?['body/new_name']}\" has been <strong>Rejected</strong><br>\nApprover: @{items('For_each')?['responder/displayName']}<br>\nComments: @{items('For_each')?['comments']}<br>\n<br>\nThanks,<br>\nAdmin</p>",
+                        "emailMessage/Importance": "Normal"
+                      },
+                      "authentication": "@parameters('$authentication')"
+                    }
+                  }
+                },
+                "runAfter": {},
+                "metadata": {
+                  "operationMetadataId": "3191e7a7-3387-44d4-a4d5-adb8cc66749e"
+                },
+                "type": "Foreach"
+              }
+            }
+          },
+          "expression": {
+            "equals": [
+              "@outputs('Start_and_wait_for_an_approval')?['body/outcome']",
+              "Approve"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "8dd8a2b5-3123-4e5f-a92b-3b299c0ce1f8"
+          },
+          "type": "If"
+        },
+        "Get_Requestor": {
+          "runAfter": {},
+          "metadata": {
+            "operationMetadataId": "2bdf8f22-ac10-4edd-ad01-50606e3a4acb"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_commondataserviceforapps",
+              "operationId": "GetItem",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+            },
+            "parameters": {
+              "entityName": "systemusers",
+              "recordId": "@triggerOutputs()?['body/_createdby_value']"
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "App_Link": {
+          "runAfter": {
+            "Get_Requestor": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "2a17f3ee-60cd-49e5-af74-ced08d60ec48"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "varAppLink",
+                "type": "string",
+                "value": "https://apps.powerapps.com/play/e/0d836a55-700c-ea1a-aeab-83db8ef20e06/a/9bfeedb8-cfa3-49b0-85fa-03ff4205fd30?tenantId=22aa4320-6056-4f9a-824c-0ce398aae1bb&hint=47272ad0-950e-4da8-b6a4-3c6379a5cf58&sourcetime=1785768415488"
+              }
+            ]
+          }
+        }
+      },
+      "outputs": {}
+    },
+    "templateName": ""
+  },
+  "schemaVersion": "1.0.0.0"
+}
